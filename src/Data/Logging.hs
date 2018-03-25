@@ -12,8 +12,18 @@ data EventSource = Internal { iesComponent   :: String
                             , eesDescription :: String }
                  | Combined [EventSource]
                  | Unknown
-                 deriving (Show, Read, Eq, Ord)
+                 deriving (Read, Eq)
                  -- TODO: remove Ord here after implementing Ord for LogMessage
+
+instance Show EventSource where
+    show (Internal c _) = "Internal[" ++ c ++ "]"
+    show (External u _) = "External[" ++ u ++ "]"
+    show Unknown = "Unknown"
+    show (Combined (x:xs)) = "Combined[" ++ show x ++ showCombined xs ++ "]"
+        where 
+            showCombined :: [EventSource] -> String
+            showCombined [] = ""
+            showCombined (x:xs) = "," ++ show x ++ showCombined xs
 
 data LogMessage = LogMessage
                 { lmSource     :: EventSource
@@ -21,9 +31,33 @@ data LogMessage = LogMessage
                 , lmTimestamp  :: UTCTime
                 , lmHiddenFlag :: Bool
                 , lmLogLevel   :: LogLevel
-                } deriving (Show, Read, Eq, Ord)
+                } deriving (Read, Eq)
                 -- TODO: custom instance of Show and Ord (hidden, timestamp, logLevel)
 
+instance Show LogMessage where
+    show (LogMessage s m _ _ l) = "[" ++ show l ++ "] " ++ show s ++ ": " ++ m  
+
+instance Ord LogMessage where
+    compare (LogMessage _ _ t1 f1 l1) (LogMessage _ _ t2 f2 l2) = undefined
+    (<) (LogMessage _ _ t1 f1 l1) (LogMessage _ _ t2 f2 l2) 
+        | f1 /= f2 = f1 > f2
+        | t1 /= t2 = t1 < t2
+        | otherwise = l1 < l2
+    (<=) (LogMessage _ _ t1 f1 l1) (LogMessage _ _ t2 f2 l2)
+        | f1 /= f2 = f1 > f2
+        | t1 /= t2 = t1 < t2
+        | otherwise = l1 <= l2
+    (>) (LogMessage _ _ t1 f1 l1) (LogMessage _ _ t2 f2 l2) 
+        | f1 /= f2 = f1 < f2
+        | t1 /= t2 = t1 > t2
+        | otherwise = l1 > l2
+    (>=) (LogMessage _ _ t1 f1 l1) (LogMessage _ _ t2 f2 l2)
+        | f1 /= f2 = f1 < f2
+        | t1 /= t2 = t1 > t2
+        | otherwise = l1 >= l2
+    max lm1 lm2 = undefined
+    min lm1 lm2 = undefined
+    
 data EventSourceMatcher = Exact EventSource
                         | With EventSource
                         | AnyInternal
@@ -36,13 +70,16 @@ data EventSourceMatcher = Exact EventSource
 -- | Change log level operator
 -- TODO: implement operator which changes LogLevel of LogMessage
 ($=) :: LogMessage -> LogLevel -> LogMessage
-($=) = undefined
+($=) (LogMessage s m t h l) nl = LogMessage s m t h nl
 
 
 -- | EventSource "combinator"
 -- TODO: implement operator which combines two EventSources (just 1 level for Combined, see tests)
 (@@) :: EventSource -> EventSource -> EventSource
-(@@) = undefined
+(@@) (Combined s1) (Combined s2) = Combined (s1 ++ s2)
+(@@) e (Combined s) = Combined ([e] ++ s)
+(@@) (Combined s) e = Combined (s ++ [e])
+(@@) e1 e2 = Combined ([e1] ++ [e2])
 
 -- | Matching EventSource with EventSourceMatcher operator
 -- TODO: implement matching
