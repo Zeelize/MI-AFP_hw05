@@ -92,13 +92,13 @@ spec = do
           (AnyInternal ~~ esCombined)  `shouldBe` True
           (AnyInternal ~~ Unknown)     `shouldBe` False
           (AnyInternal ~~ Combined [esExternal,Unknown]) `shouldBe` False
-        it "matches with AnyInternal" $ do
+        it "matches with AnyExternal" $ do
           (AnyExternal ~~ esInternal1) `shouldBe` False
           (AnyExternal ~~ esExternal)  `shouldBe` True
           (AnyExternal ~~ esCombined)  `shouldBe` True
           (AnyExternal ~~ Unknown)     `shouldBe` False
           (AnyExternal ~~ Combined [esInternal1,Unknown]) `shouldBe` False
-        it "matches with AnyInternal" $ do
+        it "matches with Any" $ do
           (Any ~~ esInternal1) `shouldBe` True
           (Any ~~ esExternal)  `shouldBe` True
           (Any ~~ esCombined)  `shouldBe` True
