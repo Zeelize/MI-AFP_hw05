@@ -38,7 +38,7 @@ instance Show LogMessage where
     show (LogMessage s m _ _ l) = "[" ++ show l ++ "] " ++ show s ++ ": " ++ m  
 
 instance Ord LogMessage where
-    compare lm1 lm2 = compare lm1 lm2 
+    --compare lm1 lm2 = compare lm1 lm2 
     (<) (LogMessage _ _ t1 f1 l1) (LogMessage _ _ t2 f2 l2) 
         | f1 /= f2 = f1 > f2
         | l1 /= l2 = l1 < l2
@@ -55,12 +55,12 @@ instance Ord LogMessage where
         | f1 /= f2 = f1 < f2
         | l1 /= l2 = l1 >= l2
         | otherwise = t1 >= t2
-    max lm1 lm2 = case lm1 < lm2 of
+    {--max lm1 lm2 = case lm1 < lm2 of
         True -> lm2
         False -> lm1
     min lm1 lm2 = case lm1 <= lm2 of
         True -> lm1
-        False -> lm2
+        False -> lm2--}
     
 data EventSourceMatcher = Exact EventSource
                         | With EventSource
