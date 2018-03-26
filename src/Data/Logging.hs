@@ -74,7 +74,7 @@ data EventSourceMatcher = Exact EventSource
 -- | Change log level operator
 -- TODO: implement operator which changes LogLevel of LogMessage
 ($=) :: LogMessage -> LogLevel -> LogMessage
-($=) (LogMessage s m t h l) nl = LogMessage s m t h nl
+($=) m nl = m { lmLogLevel = nl }
 
 
 -- | EventSource "combinator"
