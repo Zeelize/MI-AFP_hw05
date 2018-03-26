@@ -118,4 +118,12 @@ checkAny (x:xs) sm = case sm ~~ x of
 -- | Specialized log list filter
 -- TODO: implement filter function for logs with matchers, log level and hidden flag
 logFilter :: EventSourceMatcher -> LogLevel -> Bool -> [LogMessage] -> [LogMessage]
-logFilter  = undefined
+logFilter m l f [] = []
+logFilter m l f (x:xs) = case filterMatch m l f x of
+    True -> [x] ++ (logFilter m l f xs)
+    False -> (logFilter m l f xs)
+    where 
+        filterMatch :: EventSourceMatcher -> LogLevel -> Bool -> LogMessage -> Bool
+        filterMatch s l f m 
+            | s ~~ (lmSource m) && l == (lmLogLevel m) && f == (lmHiddenFlag m) = True
+            | otherwise = False  
