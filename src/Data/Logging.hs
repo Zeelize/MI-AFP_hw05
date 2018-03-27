@@ -99,21 +99,24 @@ infixr 6 ~~
 (~~) AnyExternal (Combined s) = checkAny s AnyExternal
 (~~) AnyExternal _ = False
 (~~) Any _ = True
-(~~) (MatchAny []) e = False
+(~~) (MatchAny s) e = any (~~ e) s
+(~~) (MatchAll s) e = all (~~ e) s
+{-- (~~) (MatchAny []) e = False
 (~~) (MatchAny (x:xs)) e = case x ~~ e of
     True -> True
     False -> MatchAny xs ~~ e
 (~~) (MatchAll []) e = True
 (~~) (MatchAll (x:xs)) e = case x ~~ e of
     True -> MatchAll xs ~~ e
-    False -> False  
+    False -> False --} 
 
 -- Helper functions
 checkAny :: [EventSource] -> EventSourceMatcher -> Bool
-checkAny [] _ = False
+checkAny s e = not (filter (e ~~) s == [])
+{--checkAny [] _ = False
 checkAny (x:xs) sm = case sm ~~ x of
     True -> True
-    False -> checkAny xs sm 
+    False -> checkAny xs sm --}
 
 -- | Specialized log list filter
 -- TODO: implement filter function for logs with matchers, log level and hidden flag
