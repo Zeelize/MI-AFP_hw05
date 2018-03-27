@@ -36,7 +36,29 @@ unpack (Strinteger numeral) = fromMaybe err (engNumeral2Integer numeral)
 -- | Translate Integer to String (if possible)
 -- TODO: implement Integer->String translation
 integer2EngNumeral :: Integer -> Maybe String
-integer2EngNumeral = undefined
+integer2EngNumeral 0 = Just SH.zero
+integer2EngNumeral n = Just $ scalesCompute n (reverse SH.scales)
+    where 
+        scalesCompute :: Integer -> [(Integer, String)] -> String
+        scalesCompute 0 _ = ""
+        scalesCompute n [] = tensCompute n (reverse SH.tens)
+            where 
+                tensCompute :: Integer -> [(Integer, String)] -> String
+                tensCompute 0 _ = ""
+                tensCompute n [x] = unitsCompute n (reverse SH.units)
+                    where
+                        unitsCompute :: Integer -> [(Integer, String)] -> String
+                        unitsCompute 0 _ = ""
+                        unitsCompute n [] = ""
+                        unitsCompute n ((f,s):xs) 
+                            | n - f == 0 = s
+                            | otherwise = unitsCompute n xs
+                tensCompute n ((f,s):xs) 
+                    | div n (10 * f) > 0 = tensCompute (div n (10 * f)) xs ++ " " ++ s ++ tensCompute (mod n (10 * f)) xs
+                    | otherwise = tensCompute (mod n (10 * f)) xs
+        scalesCompute n ((f,s):xs) 
+            | div n (10 ^ f) > 0 = scalesCompute (div n (10 ^ f)) xs ++ " " ++ s ++ scalesCompute (mod n (10 ^ f)) xs
+            | otherwise = scalesCompute (mod n (10 ^ f)) xs 
 
 -- | Translate String to Integer (if possible)
 -- TODO: implement String->Integer translation
@@ -45,7 +67,7 @@ engNumeral2Integer = undefined
 
 -- TODO: implement Strinteger instances of Num, Ord, Eq, Enum, Real, and Integral
 instance Eq Strinteger where
-    (==) = undefined
+    (==) (Strinteger s1) (Strinteger s2) = s1 == s2
 
 instance Ord Strinteger where
     compare = undefined
