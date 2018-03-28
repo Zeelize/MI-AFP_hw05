@@ -37,27 +37,32 @@ unpack (Strinteger numeral) = fromMaybe err (engNumeral2Integer numeral)
 -- TODO: implement Integer->String translation
 integer2EngNumeral :: Integer -> Maybe String
 integer2EngNumeral 0 = Just SH.zero
-integer2EngNumeral n = Just $ scalesCompute n (reverse SH.scales)
+integer2EngNumeral n 
+    | abs n > SH.highestPossible = Nothing
+    | n > 0 = Just $ finalString
+    | otherwise = Just $ (SH.negativePrefix ++ [SH.separator] ++ finalString)
     where 
-        scalesCompute :: Integer -> [(Integer, String)] -> String
-        scalesCompute 0 _ = ""
-        scalesCompute n [] = tensCompute n (reverse SH.tens)
+        finalString = intercalate [SH.separator] (scalesCompute (abs n) (reverse SH.scales))
+        scalesCompute :: Integer -> [(Integer, String)] -> [String]
+        scalesCompute 0 _ = []
+        scalesCompute n [] = [intercalate [SH.separatorTens] (tensCompute n (reverse SH.tens))]
             where 
-                tensCompute :: Integer -> [(Integer, String)] -> String
-                tensCompute 0 _ = ""
+                tensCompute :: Integer -> [(Integer, String)] -> [String]
+                tensCompute 0 _ = []
                 tensCompute n [x] = unitsCompute n (reverse SH.units)
                     where
-                        unitsCompute :: Integer -> [(Integer, String)] -> String
-                        unitsCompute 0 _ = ""
-                        unitsCompute n [] = ""
+                        unitsCompute :: Integer -> [(Integer, String)] -> [String]
+                        unitsCompute 0 _ = []
+                        unitsCompute n [] = []
                         unitsCompute n ((f,s):xs) 
-                            | n - f == 0 = s
+                            | n - f == 0 = [s]
                             | otherwise = unitsCompute n xs
                 tensCompute n ((f,s):xs) 
-                    | div n (10 * f) > 0 = tensCompute (div n (10 * f)) xs ++ " " ++ s ++ tensCompute (mod n (10 * f)) xs
+                    | div n (10 * f) > 1 = tensCompute (div n (10 * f)) xs ++ [s] ++ tensCompute (mod n (10 * f)) xs
+                    | div n (10 * f) == 1 = [s] ++ tensCompute (mod n (10 * f)) xs
                     | otherwise = tensCompute (mod n (10 * f)) xs
         scalesCompute n ((f,s):xs) 
-            | div n (10 ^ f) > 0 = scalesCompute (div n (10 ^ f)) xs ++ " " ++ s ++ scalesCompute (mod n (10 ^ f)) xs
+            | div n (10 ^ f) > 0 = scalesCompute (div n (10 ^ f)) xs ++ [s] ++ scalesCompute (mod n (10 ^ f)) xs
             | otherwise = scalesCompute (mod n (10 ^ f)) xs 
 
 -- | Translate String to Integer (if possible)
