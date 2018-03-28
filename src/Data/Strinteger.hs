@@ -68,7 +68,39 @@ integer2EngNumeral n
 -- | Translate String to Integer (if possible)
 -- TODO: implement String->Integer translation
 engNumeral2Integer :: String -> Maybe Integer
-engNumeral2Integer = undefined
+engNumeral2Integer str = case stringSpaces (splitOn [SH.separator] str) of
+    Just n -> Just n
+    _ -> Nothing
+    where 
+        stringSpaces :: [String] -> Maybe Integer
+        stringSpaces [] = Nothing
+        stringSpaces [x] = case stringDash (splitOn [SH.separatorTens] x) of
+            Just n -> Just n
+            _ -> Nothing
+            where 
+                stringDash :: [String] -> Maybe Integer
+                stringDash [x] = wordExport x
+                stringDash [x,y] = couplesExport x y
+        stringSpaces (x:y:[]) = couplesExport x y
+        stringSpaces (x:y:xs) = restExport (couplesExport x y) xs
+
+        restExport :: Maybe Integer -> [String] -> Maybe Integer
+        restExport ce xs = case (ce, stringSpaces xs) of
+            (Just val1, Just val2) -> Just (val1 + val2)
+            _ -> Nothing
+        
+        couplesExport :: String -> String -> Maybe Integer
+        couplesExport x y = case (stringSpaces [x], wordExport y) of
+            (Just val1, Just val2) -> Just (val1 + val2)
+            _ -> Nothing
+
+        wordExport :: String -> Maybe Integer
+        wordExport str = case SH.word2num str of
+            Just (1, v) -> Just v
+            Just (10, v) -> Just (10 * v)
+            Just (s, 0) -> Just (10 ^ s) 
+            _ -> Nothing
+        
 
 -- TODO: implement Strinteger instances of Num, Ord, Eq, Enum, Real, and Integral
 instance Eq Strinteger where
