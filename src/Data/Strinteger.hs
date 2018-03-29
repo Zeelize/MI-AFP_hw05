@@ -2,7 +2,7 @@ module Data.Strinteger where
 
 import Data.Maybe
 -- You might need to use intercalate and splitOn (similar to words/unwords)
-import Data.List (intercalate, elemIndex)
+import Data.List (intercalate, elemIndex, null)
 import Data.List.Split (splitOn)
 
 -- Use Data.Strinteger.Helpers submodule
@@ -70,6 +70,7 @@ integer2EngNumeral n
 -- | Translate String to Integer (if possible)
 -- TODO: implement String->Integer translation
 engNumeral2Integer :: String -> Maybe Integer
+engNumeral2Integer "zero" = Just 0
 engNumeral2Integer str = case stringScales (splitOn SH.separator str) (reverse SH.scales) of
     Just n -> Just n
     _ -> Nothing
@@ -87,10 +88,10 @@ engNumeral2Integer str = case stringScales (splitOn SH.separator str) (reverse S
                     (Just val1, Just val2) -> Just (val1 + val2)
                     _ -> Nothing 
                 
-                stringTens n [] = stringUnits n (reverse SH.units)
+                stringTens n [] = stringUnits n (reverse (drop 1 SH.units))
                     where
                         stringUnits :: [String] -> [(Integer, String)] -> Maybe Integer
-                        stringUnits [n] ((f,s):xs) 
+                        stringUnits [n] ((f,s):xs)
                             | n == s = Just f
                             | otherwise = stringUnits [n] xs
                         stringUnits _ _ = Nothing
@@ -103,11 +104,15 @@ engNumeral2Integer str = case stringScales (splitOn SH.separator str) (reverse S
             _ -> Nothing
             
         stringScales n ((f,s):xs) = case elemIndex s n of
-            Just i -> case (stringScales (take i n) xs, stringScales (drop (i + 1) n) xs) of
+            Just i -> case (stringScales (take i n) xs, stringScales rightSide xs) of
                 (Just val1, Just val2) -> Just (val1 * (10 ^ f) + val2)
-                (Just val1, _) -> Just (val1 * (10 ^ f))
+                (Just val1, _) -> case null rightSide of
+                    True -> Just (val1 * (10 ^ f))
+                    _ -> Nothing                                        
                 _ -> Nothing
-            _ -> stringScales n xs       
+                where 
+                    rightSide = drop (i + 1) n                       
+            _ -> stringScales n xs            
 
 -- TODO: implement Strinteger instances of Num, Ord, Eq, Enum, Real, and Integral
 instance Eq Strinteger where
