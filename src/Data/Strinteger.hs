@@ -98,8 +98,12 @@ engNumeral2Integer str = case stringScales (splitOn SH.separator str) (reverse S
                 stringTens _ _ = Nothing
         
         stringScales _ [] = Nothing
+        stringScales ("minus":xs) sc = case stringScales xs sc of
+            Just n -> Just (-n)
+            _ -> Nothing
+            
         stringScales n ((f,s):xs) = case elemIndex s n of
-            Just i -> case (stringScales (take (i - 1) n) xs, stringScales (drop i n) xs) of
+            Just i -> case (stringScales (take i n) xs, stringScales (drop (i + 1) n) xs) of
                 (Just val1, Just val2) -> Just (val1 * (10 ^ f) + val2)
                 (Just val1, _) -> Just (val1 * (10 ^ f))
                 _ -> Nothing
