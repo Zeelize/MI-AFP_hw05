@@ -119,15 +119,18 @@ instance Eq Strinteger where
     (==) (Strinteger s1) (Strinteger s2) = s1 == s2
 
 instance Ord Strinteger where
-    compare = undefined
+    compare s1 s2 = compare (unpack s1) (unpack s2)
 
 instance Num Strinteger where
-    (+) = undefined
-    (*) = undefined
-    negate = undefined
-    abs = undefined
-    signum = undefined
-    fromInteger = undefined
+    (+) s1 s2 = pack $ (unpack s1) + (unpack s2)
+    (*) s1 s2 = pack $ (unpack s1) * (unpack s2)
+    negate s = pack $ negate (unpack s) 
+    abs s = pack $ abs (unpack s) 
+    signum s 
+        | unpack s > 0 = pack 1
+        | unpack s < 0 = pack (-1)
+        | otherwise = pack 0
+    fromInteger n = pack n
 
 instance Enum Strinteger where
     toEnum = undefined
