@@ -133,12 +133,18 @@ instance Num Strinteger where
     fromInteger n = pack n
 
 instance Enum Strinteger where
-    toEnum = undefined
-    fromEnum = undefined
+    toEnum s = pack $ fromIntegral s
+    fromEnum s = fromIntegral $ unpack s
 
 instance Real Strinteger where
-    toRational = undefined
+    toRational s = toRational $ (unpack s)
 
 instance Integral Strinteger where
-    quotRem = undefined
-    toInteger = undefined
+    quotRem n1 n2 = (pack fQ, pack sR)
+        where 
+            val1 = unpack n1
+            val2 = unpack n2
+            fQ = quot val1 val2
+            sR = rem val1 val2
+
+    toInteger n = unpack n
